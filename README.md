@@ -1,39 +1,59 @@
-# Visitor Management System using Flask, PostgreSQL, Redis & Docker Compose
+# 🚀 Visitor Management System
 
-## 📌 Project Overview
+A Dockerized Visitor Management System built using Flask, PostgreSQL, and Redis. This project demonstrates containerized application development, database integration, caching, Docker volumes, Docker networks, and multi-container orchestration using Docker Compose.
 
-This project is a simple Visitor Management System built using:
+---
 
-- Flask (Web Application)
-- PostgreSQL (Database)
-- Redis (Cache)
+## 📌 Features
+
+- Add Visitor Details
+- View Visitor Details
+- Store Visitor Data in PostgreSQL
+- Track Homepage Visits using Redis
+- Multi-Container Application
+- Persistent Data Storage using Docker Volumes
+- Custom Docker Network for Container Communication
+
+---
+
+## 🛠️ Tech Stack
+
+- Python 3.11
+- Flask
+- PostgreSQL
+- Redis
 - Docker
 - Docker Compose
-
-The application allows users to:
-
-- Add visitor details
-- View all visitors
-- Store visitor data in PostgreSQL
-- Track homepage visits using Redis
 
 ---
 
 ## 🏗️ Architecture
 
 ```text
-User
-  |
-  v
-Flask Application
-  |
-  +-------------> PostgreSQL
-  |                    |
-  |                    +---- Stores Visitor Details
-  |
-  +-------------> Redis
-                       |
-                       +---- Homepage Visit Counter
+                    +------------------+
+                    |      User        |
+                    +--------+---------+
+                             |
+                             v
+                    +------------------+
+                    |   Flask App      |
+                    |  (visitor-app)   |
+                    +--------+---------+
+                             |
+              +--------------+--------------+
+              |                             |
+              v                             v
+    +------------------+         +------------------+
+    | PostgreSQL DB    |         | Redis Cache      |
+    | Stores Visitors  |         | Visitor Counter  |
+    +------------------+         +------------------+
+
+Network:
+visitor-network
+
+Volumes:
+postgres-data
+redis-data
 ```
 
 ---
@@ -43,6 +63,7 @@ Flask Application
 ```text
 visitor-management-app/
 │
+├── README.md
 ├── docker-compose.yml
 │
 └── web/
@@ -53,236 +74,35 @@ visitor-management-app/
 
 ---
 
-## 🚀 Technologies Used
+## 🚀 Setup Instructions
 
-- Python 3.11
-- Flask
-- PostgreSQL 15
-- Redis 7
-- Docker
-- Docker Compose
-
----
-
-## 📋 Prerequisites
-
-Install the following:
-
-- Docker
-- Docker Compose
-
-Verify Installation:
+### Clone Repository
 
 ```bash
-docker --version
-docker compose version
+git clone https://github.com/<your-username>/visitor-management-app.git
+
+cd visitor-management-app
 ```
 
----
-
-## 📝 requirements.txt
-
-```txt
-flask
-psycopg2-binary
-redis
-```
-
----
-
-## 🐳 Dockerfile
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 5000
-
-CMD ["python","app.py"]
-```
-
----
-
-## 📝 app.py
-
-```python
-from flask import Flask, request, jsonify
-import psycopg2
-import redis
-import time
-
-app = Flask(__name__)
-
-# PostgreSQL Connection
-while True:
-    try:
-        conn = psycopg2.connect(
-            host="postgres",
-            database="visitors",
-            user="admin",
-            password="admin123"
-        )
-
-        cur = conn.cursor()
-
-        cur.execute("""
-        CREATE TABLE IF NOT EXISTS visitors(
-            id SERIAL PRIMARY KEY,
-            visitor_id VARCHAR(20),
-            name VARCHAR(100),
-            purpose VARCHAR(100)
-        )
-        """)
-
-        conn.commit()
-        break
-
-    except Exception:
-        print("Waiting for PostgreSQL...")
-        time.sleep(5)
-
-# Redis Connection
-while True:
-    try:
-        r = redis.Redis(
-            host="redis",
-            port=6379,
-            decode_responses=True
-        )
-
-        r.ping()
-        break
-
-    except Exception:
-        print("Waiting for Redis...")
-        time.sleep(5)
-
-@app.route("/")
-def home():
-
-    visits = r.incr("homepage_visits")
-
-    return jsonify({
-        "message": "Visitor Management System",
-        "homepage_visits": visits
-    })
-
-@app.route("/visitor", methods=["POST"])
-def add_visitor():
-
-    data = request.get_json()
-
-    cur.execute(
-        """
-        INSERT INTO visitors(visitor_id,name,purpose)
-        VALUES(%s,%s,%s)
-        """,
-        (
-            data["visitor_id"],
-            data["name"],
-            data["purpose"]
-        )
-    )
-
-    conn.commit()
-
-    return jsonify({
-        "message": "Visitor Added Successfully"
-    })
-
-@app.route("/visitor", methods=["GET"])
-def get_visitors():
-
-    cur.execute(
-        """
-        SELECT visitor_id,name,purpose
-        FROM visitors
-        """
-    )
-
-    rows = cur.fetchall()
-
-    visitors = []
-
-    for row in rows:
-        visitors.append({
-            "visitor_id": row[0],
-            "name": row[1],
-            "purpose": row[2]
-        })
-
-    return jsonify(visitors)
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-```
-
----
-
-## 🐳 docker-compose.yml
-
-```yaml
-services:
-
-  web:
-    build: ./web
-    container_name: visitor-app
-
-    ports:
-      - "5000:5000"
-
-    depends_on:
-      - postgres
-      - redis
-
-  postgres:
-    image: postgres:15
-
-    container_name: postgres-db
-
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
-      POSTGRES_DB: visitors
-
-    ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:7
-
-    container_name: redis-cache
-
-    ports:
-      - "6379:6379"
-```
-
----
-
-# ▶️ Running the Application
-
-## Build and Start Containers
+### Build Containers
 
 ```bash
-docker compose up --build -d
+docker compose build
 ```
 
----
+### Start Application
 
-## Check Running Containers
+```bash
+docker compose up -d
+```
+
+### Verify Running Containers
 
 ```bash
 docker ps
 ```
 
-Expected Output:
+Expected Containers:
 
 ```text
 visitor-app
@@ -292,9 +112,15 @@ redis-cache
 
 ---
 
-# 🧪 Testing APIs
+## 🌐 Access Application
 
-## Homepage
+Open Browser:
+
+```text
+http://localhost:5000
+```
+
+Or:
 
 ```bash
 curl http://localhost:5000
@@ -304,14 +130,14 @@ Response:
 
 ```json
 {
-  "message":"Visitor Management System",
-  "homepage_visits":1
+  "message": "Visitor Management System",
+  "homepage_visits": 1
 }
 ```
 
 ---
 
-## Add Visitor
+## ➕ Add Visitor
 
 ```bash
 curl -X POST http://localhost:5000/visitor \
@@ -333,7 +159,7 @@ Response:
 
 ---
 
-## Get All Visitors
+## 📋 Get All Visitors
 
 ```bash
 curl http://localhost:5000/visitor
@@ -353,56 +179,140 @@ Response:
 
 ---
 
-# 🔥 Docker Commands Used
+## 🗄️ Verify PostgreSQL Data
 
-Build Image:
-
-```bash
-docker compose build
-```
-
-Start Containers:
+Login to PostgreSQL Container:
 
 ```bash
-docker compose up -d
+docker exec -it postgres-db psql -U admin -d visitors
 ```
 
-Stop Containers:
+Check Data:
+
+```sql
+SELECT * FROM visitors;
+```
+
+Exit:
+
+```sql
+\q
+```
+
+---
+
+## ⚡ Verify Redis Counter
+
+Login to Redis Container:
+
+```bash
+docker exec -it redis-cache redis-cli
+```
+
+Check Homepage Counter:
+
+```bash
+GET homepage_visits
+```
+
+Exit:
+
+```bash
+exit
+```
+
+---
+
+## 🔗 Verify Docker Network
+
+List Networks:
+
+```bash
+docker network ls
+```
+
+Inspect Network:
+
+```bash
+docker network inspect visitor-management-app_visitor-network
+```
+
+---
+
+## 💾 Verify Docker Volumes
+
+List Volumes:
+
+```bash
+docker volume ls
+```
+
+Expected:
+
+```text
+visitor-management-app_postgres-data
+visitor-management-app_redis-data
+```
+
+Inspect Volume:
+
+```bash
+docker volume inspect visitor-management-app_postgres-data
+```
+
+---
+
+## 🛑 Stop Application
 
 ```bash
 docker compose down
 ```
 
-View Logs:
+---
+
+## 🗑️ Remove Containers and Volumes
 
 ```bash
-docker compose logs -f
-```
-
-List Running Containers:
-
-```bash
-docker ps
+docker compose down -v
 ```
 
 ---
 
-# 📚 Learning Outcomes
+## 📚 Docker Concepts Demonstrated
+
+- Dockerfile
+- Docker Images
+- Docker Containers
+- Docker Compose
+- Docker Volumes
+- Docker Networks
+- Flask REST APIs
+- PostgreSQL Database Integration
+- Redis Cache Integration
+- Multi-Container Architecture
+- Persistent Storage
+- Container Communication
+
+---
+
+## 🎯 Learning Outcomes
 
 Through this project, I learned:
 
-- Creating Dockerfiles
-- Building custom Docker images
-- Running multi-container applications
+- Building Docker Images
+- Running Containers
+- Creating Multi-Container Applications
 - Using Docker Compose
+- Managing Docker Networks
+- Managing Docker Volumes
 - Connecting Flask with PostgreSQL
-- Using Redis as a cache
-- Container networking
-- API development using Flask
+- Using Redis for Caching
+- Container-to-Container Communication
+- Deploying Real-World Applications with Docker
 
 ---
 
-# 👨‍💻 Author
+## 👨‍💻 Author
 
 **Arvind Patil**
 
@@ -410,4 +320,4 @@ DevOps Engineer | Docker | Linux | AWS | CI/CD
 
 ---
 
-## ⭐ If you found this project useful, don't forget to star the repository.
+⭐ If you found this project useful, consider starring the repository.
