@@ -289,25 +289,25 @@ docker compose logs -f
 ### 🏠 Home Page
 
 ```text
-images/homepage.png
+
 ```
 
 ### ➕ Add Visitor
 
 ```text
-images/add-visitor.png
+
 ```
 
 ### 📋 Visitor Records
 
 ```text
-images/visitor-list.png
+
 ```
 
 ### 🐳 Running Containers
 
 ```text
-images/docker-ps.png
+
 ```
 
 ---
