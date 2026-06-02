@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visitor Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>🚀 Visitor Management System</h1>
+
+    <div class="counter">
+        Website Visits:
+        <span id="visitCount">0</span>
+    </div>
+
+    <form id="visitorForm">
+
+        <input type="text" id="visitor_id" placeholder="Visitor ID" required>
+
+        <input type="text" id="name" placeholder="Visitor Name" required>
+
+        <input type="text" id="purpose" placeholder="Purpose" required>
+
+        <button type="submit">
+            Add Visitor
+        </button>
+
+    </form>
+
+    <h2>Visitor Records</h2>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Purpose</th>
+            </tr>
+        </thead>
+
+        <tbody id="visitorTable"></tbody>
+
+    </table>
+
+</div>
+
+<script src="/static/script.js"></script>
+
+</body>
+</html>
